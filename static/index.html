@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/index.css">
+    <title>Traceroute Results</title>
+</head>
+<body>
+    <h1>Traceroute Results</h1>
+    <input type="text" id="ipAddress" placeholder="Enter IP Address">
+    <button onclick="fetchTraceroute()">Run Traceroute</button>
+    <table id="resultsTable">
+        <thead>
+            <tr>
+                <th>IP Address</th>
+                <th>Details</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+    <script src="/static/index.js"></script>
+</body>
+</html>
