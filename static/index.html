@@ -8,12 +8,15 @@
 </head>
 <body>
     <h1>Traceroute Results</h1>
-    <input type="text" id="ipAddress" placeholder="Enter IP Address">
+    <input type="text" id="target" placeholder="Enter the target IP/URL">
     <button onclick="fetchTraceroute()">Run Traceroute</button>
     <table id="resultsTable">
         <thead>
             <tr>
-                <th>IP Address</th>
+                <th>Hop</th>
+                <th>Target(IP/URL)</th>
+                <th>RTT</th>
+                <th>Location(LONG/LAT)</th>
                 <th>Details</th>
             </tr>
         </thead>

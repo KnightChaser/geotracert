@@ -1,11 +1,12 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse, FileResponse    
-import subprocess
-import shlex
+from networking import traceroute 
+import sys
 import re
 import httpx
 import asyncio
+from rich.console import Console
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -14,44 +15,41 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 async def read_root():
     return FileResponse("static/index.html")
 
-@app.get("/traceroute/{ip_address}")
-async def run_traceroute(ip_address: str):
-    if not is_valid_ip(ip_address):
-        raise HTTPException(status_code=400, detail="Invalid IP address format")
+# Get IP details for a given IP/URL address
+@app.get("/traceroute/{target}")
+async def run_traceroute(target: str):
 
-    # command = f"traceroute {shlex.quote(ip_address)}"
-    command = f"tracert {shlex.quote(ip_address)}"
-    process = subprocess.Popen(
-        command,
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
-    )
-    stdout, stderr = process.communicate()
+    # Run the traceroute function
+    try:
+        traceroute_result:list[dict] = traceroute(target)
+        
+        # Get the details of the available IP addresses, and append them to the traceroute result,
+        # To the each hop in the traceroute result, we will add the IP details
+        available_ip_lists:list[str] = [hop["ip"] for hop in traceroute_result if re.match(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", hop["ip"])]
+        ip_details = await fetch_ip_details(available_ip_lists)
+        
+        for hop in traceroute_result:
+            if hop["ip"] in ip_details["ip_details"]:
+                hop["ip_details"] = ip_details["ip_details"][hop["ip"]]
 
-    if process.returncode == 0:
-        data = stdout.decode()
-        ip_pattern = re.compile(r'\b\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}\b')
-        ips = ip_pattern.findall(data)
+        return JSONResponse(content = traceroute_result)
+    except Exception as exception:
+        raise HTTPException(status_code = 400, detail = str(exception))
 
-        # Asynchronously fetch IP details
-        return await fetch_ip_details(ips)
-    else:
-        return JSONResponse(status_code=500, content={"error": stderr.decode()})
+# Fetch IP details for a list of IP addresses
+async def fetch_ip_details(ips: list[str]) -> dict:
+    console:Console = Console()
+    ip_details:dict = {}
 
-async def fetch_ip_details(ips):
     async with httpx.AsyncClient() as client:
-        tasks = [client.get(f"http://ip-api.com/json/{ip}") for ip in ips]
+        tasks = [client.get(f"http://ip-api.com/json/{ip}?fields=status,message,continent,country,countryCode,region,regionName,city,district,zip,lat,lon,timezone,isp,org,as,reverse,query") for ip in ips]
         # Simultaneously fetch IP details via async requests
         responses = await asyncio.gather(*tasks)
-        ip_info_list = [response.json() for response in responses if response.status_code == 200]
-        return JSONResponse(content={"IP Details": ip_info_list})
-
-def is_valid_ip(ip: str) -> bool:
-    parts = ip.split('.')
-    if len(parts) != 4:
-        return False
-    for part in parts:
-        if not part.isdigit() or not 0 <= int(part) <= 255:
-            return False
-    return True
+        for response in responses:
+            if response.status_code != 200:
+                console.log(f"[bold red]Failed to fetch IP details for {response.url}[/bold red]")
+                continue
+            ip_info = response.json()
+            ip_details[ip_info["query"]] = ip_info
+    
+    return {"ip_details": ip_details}
