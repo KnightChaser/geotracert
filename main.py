@@ -47,8 +47,10 @@ async def fetch_ip_details(ips: list[str]) -> dict:
         responses = await asyncio.gather(*tasks)
         for response in responses:
             if response.status_code != 200:
-                console.log(f"[bold red]Failed to fetch IP details for {response.url}[/bold red]")
+                console.log(f"[bold red]Failed to fetch IP details for [/bold red][red]{response.url}")
                 continue
+            else:
+                console.log(f"[bold green]Successfully fetched IP details for [/bold green][green]{response.url}")
             ip_info = response.json()
             ip_details[ip_info["query"]] = ip_info
     

@@ -1,3 +1,4 @@
+// Initialize the page
 async function fetchTraceroute() {
     const ip = document.getElementById("target").value;
     const response = await fetch(`/traceroute/${ip}`);
@@ -11,25 +12,29 @@ async function fetchTraceroute() {
         const cellIP = row.insertCell();
         const cellRTT = row.insertCell();
         const cellLocation = row.insertCell();
-        const cellDetails = row.insertCell();
+        const cellCountry = row.insertCell();
+        const cellOrganization = row.insertCell();
 
         // Handle null values and rounding of RTT
         cellHop.textContent = ipInfo.hop || "-";
-        cellIP.textContent = ipInfo.ip || "-";
-        cellRTT.textContent = ipInfo.rtt ? `${Math.round(ipInfo.rtt * 1000)} ms` : "-";
+        cellIP.innerHTML = "<code>" + ipInfo.ip + "</code>" || "-";
+        if (isNaN(ipInfo.rtt))
+            ipInfo.rtt = null;
+        cellRTT.textContent = ipInfo.rtt ? `${(ipInfo.rtt * 1000).toFixed(3)} ms` : "-";
         cellLocation.textContent = (ipInfo.ip_details && ipInfo.ip_details.lat && ipInfo.ip_details.lon) ?
                                    `${ipInfo.ip_details.lat}, ${ipInfo.ip_details.lon}` : "-";
-        
-        const detailsText = ipInfo.ip_details ? `
-            Continent: ${ipInfo.ip_details.continent || "-"}\n
-            Country: ${ipInfo.ip_details.country || "-"} (${ipInfo.ip_details.countryCode || "-"})\n
-            Region: ${ipInfo.ip_details.regionName || "-"} (${ipInfo.ip_details.region || "-"})\n
-            City: ${ipInfo.ip_details.city || "-"}\n
-            ISP: ${ipInfo.ip_details.isp || "-"}\n
-            Org: ${ipInfo.ip_details.org || "-"}\n
-            AS: ${ipInfo.ip_details.as || "-"}
-        ` : "-";
-
-        cellDetails.textContent = detailsText.trim();
+        cellCountry.textContent = ipInfo.ip_details ? ipInfo.ip_details.country : "-";
+        if (ipInfo.ip_details && ipInfo.ip_details.countryCode)
+            cellCountry.innerHTML = getFlagEmoji(ipInfo.ip_details.countryCode) + " " + cellCountry.innerHTML;
+        cellOrganization.textContent = ipInfo.ip_details ? ipInfo.ip_details.org : "-";
     });
+}
+
+// Get the flag emoji for a given country code
+function getFlagEmoji(countryCode) {
+    const codePoints = countryCode
+        .toUpperCase()
+        .split('')
+        .map(char =>  127397 + char.charCodeAt());
+    return String.fromCodePoint(...codePoints);
 }
