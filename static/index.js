@@ -11,6 +11,22 @@ async function fetchTraceroute() {
         return;
     }
 
+    // A toast message to inform the user
+    const swalToastMessage = Swal.mixin({
+        toast: true,
+        position: "top",
+        showConfirmButton: false,
+        timer: 3000,
+        timerProgressBar: true,
+        customClass: {
+            popup: "colored-toast"
+        }
+    });
+    swalToastMessage.fire({
+        icon: "info",
+        title: "Traceroute started to <code>" + target + "</code>"
+    });
+
     // Open a WebSocket connection to the server
     const ws = new WebSocket(`ws://${window.location.host}/ws/traceroute/${target}`);
     const table = document.getElementById("resultsTable").getElementsByTagName("tbody")[0];
@@ -26,11 +42,19 @@ async function fetchTraceroute() {
     // Handle any errors that occur during the WebSocket connection
     ws.onerror = function() {
         console.error("WebSocket error occurred")
+        swalToastMessage.fire({
+            icon: "error",
+            title: "An error occurred during the traceroute"
+        });
     };
 
     // Clean up once the WebSocket connection is closed
     ws.onclose = function() {
         console.log("WebSocket connection closed");
+        swalToastMessage.fire({
+            icon: "success",
+            title: "Traceroute completed"
+        });
     };
 }
 
@@ -133,7 +157,7 @@ function generateDetailsTable(ipInfo) {
                 </tr>
                 <tr>
                     <td>Reverse DNS</td>
-                    <td>${getValue('reverse')}</td>
+                    <td><code>${getValue('reverse')}</code></td>
                 </tr>
             </tbody>
         </table>`;

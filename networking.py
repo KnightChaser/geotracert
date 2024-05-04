@@ -125,7 +125,7 @@ async def traceroute_live(destination:str, max_hops:int = 30, timeout_in_second:
 
         reply_source:str = reply.src if reply is not None else "*"
         reply_time:float = reply.time - packet.sent_time if reply is not None else "Request timed out"
-        console.log(f"(Yield)[bold]Hop:[/bold] {ttl} [bold]IP:[/bold] {reply_source} [bold]RTT:[/bold] {reply_time}")
+        console.log(f"(Via websocket) [bold]Hop:[/bold] {ttl} [bold]IP:[/bold] {reply_source} [bold]RTT:[/bold] {reply_time}")
 
         ttl += 1
         # Check if reply object has "type" attribute and its value is 3
