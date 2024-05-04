@@ -36,8 +36,17 @@ async function fetchTraceroute() {
     ws.onmessage = function(event) {
         const ipInfo = JSON.parse(event.data);
         const row = table.insertRow();
+        
+        // Populate the row with data before adding the blink class
         appendHopInfo(row, ipInfo);
+        
+        // Add the blink class
+        row.classList.add("blink");
+        row.addEventListener('animationend', () => {
+            row.classList.remove("blink");
+        });
     };
+
 
     // Handle any errors that occur during the WebSocket connection
     ws.onerror = function() {

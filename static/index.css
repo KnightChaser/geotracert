@@ -1,38 +1,90 @@
+@font-face {
+    font-family: 'SF Mono';
+    src: url('/static/SFMonoMedium.otf');
+}
+
 body {
-    font-family: Consolas, Arial, sans-serif;
+    font-family: 'SF Mono', Consolas, Tahoma, Geneva, Verdana, sans-serif !important;
     padding: 20px;
+    background: #f0f0f0;
+}
+
+#maintext {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+#inputbox {
+    margin-bottom: 20px;
+}
+
+.navbar {
+    margin-bottom: 20px;
+}
+
+.container {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+}
+
+.input-group {
+    max-width: 500px;
 }
 
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
+    text-align: center;
 }
 
 th, td {
-    border: 1px solid #ccc;
-    padding: 8px;
-    text-align: left;
+    border: 1px solid gray;
+    padding: 12px;
+    text-align: center;
 }
 
+@keyframes blink {
+    0%, 50%, 100% {
+        opacity: 1;
+    }
+    25%, 75% {
+        opacity: 0;
+    }
+}
+
+.blink {
+    animation: blink 1s ease-out 0s 1 normal none;
+}
+
+
 th {
-    background-color: #f4f4f4;
+    background-color: #007bff;
+    color: white;
+    text-align: center;
 }
 
 input[type="text"] {
-    padding: 8px;
-    width: 300px;
-    margin-right: 10px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    padding: 10px;
 }
 
 button {
     padding: 10px 20px;
+    border-radius: 5px;
     background-color: #007bff;
     color: white;
     border: none;
-    cursor: pointer;
+    transition: background-color 0.3s;
 }
 
 button:hover {
     background-color: #0056b3;
+}
+
+.table-responsive {
+    overflow-x: auto;
 }
