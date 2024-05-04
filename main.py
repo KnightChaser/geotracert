@@ -1,8 +1,7 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, WebSocket, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import JSONResponse, FileResponse    
-from networking import traceroute 
-import sys
+from networking import traceroute, traceroute_live
 import re
 import httpx
 import asyncio
@@ -14,6 +13,24 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 @app.get("/")
 async def read_root():
     return FileResponse("static/index.html")
+
+# Get IP details for a given IP/URL address, via websocket connection for real-time updates
+@app.websocket("/ws/traceroute/{target}")
+async def websocket_run_traceroute(websocket: WebSocket, target: str):
+    await websocket.accept()
+
+    try:
+        # Use async generator to send the traceroute result in real-time
+        async for hop in traceroute_live(target):
+            # Append the IP details to the hop
+            if re.match(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", hop["ip"]):
+                ip_details = await fetch_ip_details([hop["ip"]])
+                hop["ip_details"] = ip_details["ip_details"][hop["ip"]]
+            await websocket.send_json(hop)
+    except Exception as exception:
+        await websocket.send_json({"error": str(exception)})
+    finally:
+        await websocket.close()
 
 # Get IP details for a given IP/URL address
 @app.get("/traceroute/{target}")
@@ -35,7 +52,7 @@ async def run_traceroute(target: str):
         return JSONResponse(content = traceroute_result)
     except Exception as exception:
         raise HTTPException(status_code = 400, detail = str(exception))
-
+    
 # Fetch IP details for a list of IP addresses
 async def fetch_ip_details(ips: list[str]) -> dict:
     console:Console = Console()

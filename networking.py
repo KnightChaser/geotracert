@@ -1,6 +1,7 @@
 import socket
 import struct
 import time
+from typing import AsyncIterator, Dict
 from scapy.all import IP, UDP, sr1
 from rich.console import Console
 
@@ -20,7 +21,7 @@ def is_valid_url(url:str) -> bool:
     except socket.error:
         return False
 
-# A custom exception class for invalid IP address
+# A custom traceroute function
 def traceroute(destination:str, max_hops:int = 30, timeout_in_second:int = 3) -> list:
     if not destination:
         raise ValueError("Destination IP address is required")
@@ -75,3 +76,58 @@ def traceroute(destination:str, max_hops:int = 30, timeout_in_second:int = 3) ->
             break
 
     return result
+
+# A custom traceroute function, using yield to provide the result in live
+# This function is an async generator, will be used in FastAPI websocket
+async def traceroute_live(destination:str, max_hops:int = 30, timeout_in_second:int = 3) -> AsyncIterator[Dict[str, str]]:
+    if not destination:
+        raise ValueError("Destination IP address is required")
+    else:
+        # Check if the given destination is a valid IP address or URL
+        if not is_valid_ip(destination) and not is_valid_url(destination):
+            raise ValueError(f"Invalid destination IP address or URL: {destination}")
+    
+    destination_ip:str = socket.gethostbyname(destination)
+    if not destination_ip:
+        raise ValueError(f"Invalid destination IP address: {destination}")
+    
+    port = 33434
+    ttl  = 1
+    console:Console = Console()                         # For rich console output
+    console.log(f"[bold]Traceroute to {destination} ({destination_ip}), {max_hops} hops max[/bold]")
+
+    while True:
+        ip_packet:IP = IP(dst=destination_ip, ttl=ttl)
+        udp_packet:UDP = UDP(dport=port)
+        packet:IP = ip_packet/udp_packet                # Combine IP and UDP packets
+        reply:IP = sr1(packet, verbose=False, timeout=timeout_in_second)
+
+        if reply is None:
+            yield {
+                "hop": ttl,
+                "ip": "*",
+                "rtt": "Request timed out"
+            }
+        elif reply.type == 3:
+            # Means the destination is reached
+            yield {
+                "hop": ttl,
+                "ip": reply.src,
+                "rtt": reply.time - packet.sent_time
+            }
+        else:
+            # Means the packet has reached an intermediate router
+            yield {
+                "hop": ttl,
+                "ip": reply.src,
+                "rtt": reply.time - packet.sent_time
+            }
+
+        reply_source:str = reply.src if reply is not None else "*"
+        reply_time:float = reply.time - packet.sent_time if reply is not None else "Request timed out"
+        console.log(f"(Yield)[bold]Hop:[/bold] {ttl} [bold]IP:[/bold] {reply_source} [bold]RTT:[/bold] {reply_time}")
+
+        ttl += 1
+        # Check if reply object has "type" attribute and its value is 3
+        if ttl > max_hops or (reply is not None and reply.type == 3):
+            break
