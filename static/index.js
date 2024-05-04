@@ -1,6 +1,8 @@
-// Initialize the WebSocket connection and handle traceroute updates
+let startTime;
+let hopCount = 0;
+
 async function fetchTraceroute() {
-    // Get the target IP/URL from the input field
+    resetCounters();
     const target = document.getElementById("target").value;
     if (!target) {
         Swal.fire({
@@ -22,24 +24,32 @@ async function fetchTraceroute() {
             popup: "colored-toast"
         }
     });
-    swalToastMessage.fire({
-        icon: "info",
-        title: "Traceroute started to <code>" + target + "</code>"
-    });
 
     // Open a WebSocket connection to the server
     const ws = new WebSocket(`ws://${window.location.host}/ws/traceroute/${target}`);
     const table = document.getElementById("resultsTable").getElementsByTagName("tbody")[0];
     table.innerHTML = ""; // Clear previous results
+    startTime = Date.now(); // Start timing
 
-    // Function to handle incoming messages from WebSocket
+    ws.onopen = function() {
+        // Reset the counters and start timing on WebSocket open
+        resetCounters();
+        swalToastMessage.fire({
+            icon: "info",
+            title: "Traceroute started to <code>" + target + "</code>"
+        });
+    };
+
     ws.onmessage = function(event) {
         const ipInfo = JSON.parse(event.data);
         const row = table.insertRow();
-        
-        // Populate the row with data before adding the blink class
         appendHopInfo(row, ipInfo);
-        
+
+        // Update counters
+        hopCount++;
+        document.getElementById("hopCounterNumber").setAttribute('value', hopCount);
+        document.getElementById("timeCounterNumber").setAttribute('value', Date.now() - startTime);
+
         // Add the blink class
         row.classList.add("blink");
         row.addEventListener('animationend', () => {
@@ -47,17 +57,14 @@ async function fetchTraceroute() {
         });
     };
 
-
-    // Handle any errors that occur during the WebSocket connection
     ws.onerror = function() {
-        console.error("WebSocket error occurred")
+        console.error("WebSocket error occurred");
         swalToastMessage.fire({
             icon: "error",
             title: "An error occurred during the traceroute"
         });
     };
 
-    // Clean up once the WebSocket connection is closed
     ws.onclose = function() {
         console.log("WebSocket connection closed");
         swalToastMessage.fire({
@@ -65,6 +72,12 @@ async function fetchTraceroute() {
             title: "Traceroute completed"
         });
     };
+}
+
+function resetCounters() {
+    hopCount = 0;
+    document.getElementById("hopCounterNumber").setAttribute('value', 0);
+    document.getElementById("timeCounterNumber").setAttribute('value', 0);
 }
 
 // Helper function to append traceroute hop information to the table
