@@ -1,5 +1,6 @@
 let startTime;
 let hopCount = 0;
+let packetTravelledKm = 0;
 
 async function fetchTraceroute() {
     resetCounters();
@@ -40,6 +41,18 @@ async function fetchTraceroute() {
         });
     };
 
+    // Store the previous tracked traceroute hop's coordinates and the current
+    let traceroutePointCoordinates = {
+        "previous": {
+            "latitude": null,
+            "longitude": null
+        },
+        "current": {
+            "latitude": null,
+            "longitude": null
+        }
+    };
+
     ws.onmessage = function(event) {
         const ipInfo = JSON.parse(event.data);
         const row = table.insertRow();
@@ -49,6 +62,33 @@ async function fetchTraceroute() {
         hopCount++;
         document.getElementById("hopCounterNumber").setAttribute('value', hopCount);
         document.getElementById("timeCounterNumber").setAttribute('value', Date.now() - startTime);
+
+        // Calculate the distance between the previous and current traceroute hop
+        // Skip the first hop since there is no previous hop to calculate the distance
+        // Skip if the current hop's coordinates are not available
+        if (hopCount > 1 && ipInfo.ip_details 
+                && ipInfo.ip_details.lat && ipInfo.ip_details.lon) {
+            // Update the packet travelled distance counter
+            traceroutePointCoordinates.previous.latitude = traceroutePointCoordinates.current.latitude;
+            traceroutePointCoordinates.previous.longitude = traceroutePointCoordinates.current.longitude;
+            traceroutePointCoordinates.current.latitude = ipInfo.ip_details.lat;
+            traceroutePointCoordinates.current.longitude = ipInfo.ip_details.lon;
+
+            // Calculate the distance between the previous and current traceroute hop
+            const distance = calculateDistanceFromTwoCoordinatesEarth(
+                traceroutePointCoordinates.previous.latitude,
+                traceroutePointCoordinates.previous.longitude,
+                traceroutePointCoordinates.current.latitude,
+                traceroutePointCoordinates.current.longitude
+            );
+
+            // If the previous hop's coordinates are not available, the distance is calculated as zero, just update the traceroutePointCoordinates object
+            if (traceroutePointCoordinates.previous.latitude && traceroutePointCoordinates.previous.longitude) {
+                // Update the packet travelled distance counter
+                packetTravelledKm += Math.round(distance);
+                document.getElementById("packetTravelledDistanceCounterNumber").setAttribute('value', packetTravelledKm);
+            }
+        }
 
         // Add the blink class
         row.classList.add("blink");
@@ -76,8 +116,10 @@ async function fetchTraceroute() {
 
 function resetCounters() {
     hopCount = 0;
+    packetTravelledKm = 0;
     document.getElementById("hopCounterNumber").setAttribute('value', 0);
     document.getElementById("timeCounterNumber").setAttribute('value', 0);
+    document.getElementById("packetTravelledDistanceCounterNumber").setAttribute('value', 0);
 }
 
 // Helper function to append traceroute hop information to the table
@@ -193,4 +235,24 @@ function getFlagEmoji(countryCode) {
         .split('')
         .map(char => 127397 + char.charCodeAt());
     return String.fromCodePoint(...codePoints);
+}
+
+// Calculate the Euclidean distance between two coordinates on Earth(geodesic distance)
+function calculateDistanceFromTwoCoordinatesEarth(latitude1, longtitude1, latitude2, longtitude2) {
+    // Convert degrees to radians
+    function degreeToRadian(deg) {
+        return deg * Math.PI / 180;
+    }
+
+    const radius = 6371; // Earth radius in km
+    const distanceLatitudes = degreeToRadian(latitude2 - latitude1);
+    const distanceLongtitudes = degreeToRadian(longtitude2 - longtitude1);
+
+    // Haversine formula
+    const a = Math.sin(distanceLatitudes / 2) * Math.sin(distanceLatitudes / 2) +
+              Math.cos(degreeToRadian(latitude1)) * Math.cos(degreeToRadian(latitude2)) *
+              Math.sin(distanceLongtitudes / 2) * Math.sin(distanceLongtitudes / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = radius * c;
+    return distance;
 }
