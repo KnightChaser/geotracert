@@ -12,11 +12,21 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module" src="https://unpkg.com/@layflags/rolling-number@1.0.0/rolling-number.js"></script>
 
+    <!-- world map (amCharts) -->
+    <script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/locales/de_DE.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/geodata/germanyLow.js"></script>
+    <script src="https://cdn.amcharts.com/lib/5/fonts/notosans-sc.js"></script>
     <title>Traceroute Results</title>
 </head>
 <body>
     <div class="container mt-4">
+        <!-- Main title -->
         <h1 class="mb-3" id="maintext">Traceroute!</h1>
+
+        <!-- Upper bar (user input and number counters(hop counter/stopwatch/distance)) -->
         <div class="d-flex justify-content-center">
             <div class="input-group mb-3" id="inputbox">
                 <input type="text" class="form-control" id="target" placeholder="Enter the target IP/URL">
@@ -34,6 +44,13 @@
                 </div>
             </div>
         </div>
+        <!-- End of the upper bar -->
+
+        <!-- World map(plotting points of tracerouted points) -->
+
+        <!-- End of the world map -->
+
+        <!-- Traceroute result table  -->
         <div class="table-responsive">
             <table class="table" id="resultsTable">
                 <thead class="table-dark">
@@ -51,7 +68,9 @@
                 </tbody>
             </table>
         </div>
+        <!-- End of the traceroute result table -->
     </div>
+
     <script src="/static/index.js"></script>
 </body>
 </html>
