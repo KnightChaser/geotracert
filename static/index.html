@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="/static/index.css">
+    <link rel="stylesheet" href="/static/tracerouteMapping.css">
     <link rel="icon" href="/static/favicon.png">
 
     <!-- Notification and layout -->
@@ -46,7 +47,10 @@
 
         <!-- World map(plotting points of tracerouted points) -->
         <div class="map-container">
-            <h2 class="map-title">Traceroute Path</h2>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+               <h2 class="map-title">Traceroute Path</h2>
+                <button id="toggleMapModeButton" class="btn btn-outline-secondary">Toggle Map Mode</button>
+            </div>
             <div id="chartdiv" style="width: 100%; height: 500px;"></div>
         </div>
         <!-- End of the world map -->

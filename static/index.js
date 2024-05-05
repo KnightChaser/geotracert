@@ -114,9 +114,18 @@ async function fetchTraceroute() {
 
         // Add the traceroute hop to the map
         if (ipInfo.ip_details && ipInfo.ip_details.lat && ipInfo.ip_details.lon) {
-            addPoint(ipInfo.ip_details.lat, ipInfo.ip_details.lon);
+            addPoint(ipInfo.ip_details.lat, 
+                     ipInfo.ip_details.lon,
+                     hopCount,
+                     ipInfo.ip,
+                     ipInfo.ip_details.country,
+                     ipInfo.ip_details.region,
+                     ipInfo.ip_details.regionName);
             if (previousLatitude != null && previousLongitude != null) {
-                addLine(previousLatitude, previousLongitude, ipInfo.ip_details.lat, ipInfo.ip_details.lon);
+                addLine(previousLatitude, 
+                        previousLongitude, 
+                        ipInfo.ip_details.lat, 
+                        ipInfo.ip_details.lon);
             }
             previousLatitude = ipInfo.ip_details.lat;
             previousLongitude = ipInfo.ip_details.lon;
