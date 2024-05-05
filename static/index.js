@@ -1,9 +1,20 @@
+import { addPoint, addLine, clearMap } from '/static/tracerouteMapping.js';
+
 let startTime;
 let hopCount = 0;
 let packetTravelledKm = 0;
+let previousLatitude = null;
+let previousLongitude = null;
+
+document.addEventListener('DOMContentLoaded', (event) => {
+    document.getElementById('runTracerouteButton').addEventListener('click', fetchTraceroute);
+});
 
 async function fetchTraceroute() {
+    
     resetCounters();
+    clearMap();
+
     const target = document.getElementById("target").value;
     if (!target) {
         Swal.fire({
@@ -33,8 +44,11 @@ async function fetchTraceroute() {
     startTime = Date.now(); // Start timing
 
     ws.onopen = function() {
-        // Reset the counters and start timing on WebSocket open
+        // Reset the counters and start timing on WebSocket open,
+        // Also, clear the map and the table
         resetCounters();
+        clearMap();
+
         swalToastMessage.fire({
             icon: "info",
             title: "Traceroute started to <code>" + target + "</code>"
@@ -53,6 +67,8 @@ async function fetchTraceroute() {
         }
     };
 
+    // Handle incoming messages from the server
+    // (Via websocket, the server sends the traceroute hop information as JSON objects in simultaneous chunks)
     ws.onmessage = function(event) {
         const ipInfo = JSON.parse(event.data);
         const row = table.insertRow();
@@ -95,6 +111,16 @@ async function fetchTraceroute() {
         row.addEventListener('animationend', () => {
             row.classList.remove("blink");
         });
+
+        // Add the traceroute hop to the map
+        if (ipInfo.ip_details && ipInfo.ip_details.lat && ipInfo.ip_details.lon) {
+            addPoint(ipInfo.ip_details.lat, ipInfo.ip_details.lon);
+            if (previousLatitude != null && previousLongitude != null) {
+                addLine(previousLatitude, previousLongitude, ipInfo.ip_details.lat, ipInfo.ip_details.lon);
+            }
+            previousLatitude = ipInfo.ip_details.lat;
+            previousLongitude = ipInfo.ip_details.lon;
+        }
     };
 
     ws.onerror = function() {

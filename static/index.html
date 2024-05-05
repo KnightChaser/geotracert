@@ -28,7 +28,7 @@
         <div class="d-flex justify-content-center">
             <div class="input-group mb-3" id="inputbox">
                 <input type="text" class="form-control" id="target" placeholder="Enter the target IP/URL">
-                <button class="btn btn-primary" type="button" onclick="fetchTraceroute()">Run Traceroute</button>
+                <button class="btn btn-primary" type="button" id="runTracerouteButton">Run Traceroute</button>
             </div>
             <div class="d-flex align-items-center mx-3">
                 <div id="hopCounter" class="counter"><b>Hop travelled</b><br>
@@ -73,7 +73,7 @@
     </div>
 
     <!-- Loading custom JavaScript files -->
-    <script src="/static/index.js"></script>
-    <script src="/static/tracerouteMapping.js" defer></script>
+    <script src="/static/index.js" type="module"></script>
+    <script src="/static/tracerouteMapping.js" type="module" defer></script>
 </body>
 </html>
