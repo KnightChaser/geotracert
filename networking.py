@@ -97,10 +97,14 @@ async def traceroute_live(destination:str, max_hops:int = 30, timeout_in_second:
     console.log(f"[bold]Traceroute to {destination} ({destination_ip}), {max_hops} hops max[/bold]")
 
     while True:
-        ip_packet:IP = IP(dst=destination_ip, ttl=ttl)
-        udp_packet:UDP = UDP(dport=port)
-        packet:IP = ip_packet/udp_packet                # Combine IP and UDP packets
-        reply:IP = sr1(packet, verbose=False, timeout=timeout_in_second)
+        try:
+            ip_packet:IP = IP(dst=destination_ip, ttl=ttl)
+            udp_packet:UDP = UDP(dport=port)
+            packet:IP = ip_packet/udp_packet                # Combine IP and UDP packets
+            reply:IP = sr1(packet, verbose=False, timeout=timeout_in_second)
+        except Exception as exception:
+            yield {"error": str(exception)}
+            break
 
         if reply is None:
             yield {

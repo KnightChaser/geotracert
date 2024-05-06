@@ -158,11 +158,18 @@ async function fetchTraceroute() {
 
     ws.onclose = function() {
         console.log("WebSocket connection closed");
-        swalToastMessage.fire({
-            icon: "success",
-            title: "Traceroute completed, refresh the page to start a new traceroute"
-        });
-
+        if (hopCount === 0) {
+            swalToastMessage.fire({
+                icon: "error",
+                title: "Traceroute failed, no hops found (Probably the target is unreachable)"
+            });
+        } else {
+            swalToastMessage.fire({
+                icon: "success",
+                title: "Traceroute completed, refresh the page to start a new traceroute"
+            });
+        }
+        
         // Set the statusButton to "Completed", with file-earmark-check-fill icon
         document.getElementById("statusButton").innerHTML = "<span>Completed</span>";
     };

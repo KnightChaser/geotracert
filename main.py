@@ -22,6 +22,10 @@ async def websocket_run_traceroute(websocket: WebSocket, target: str):
     try:
         # Use async generator to send the traceroute result in real-time
         async for hop in traceroute_live(target):
+            # Check if traceroute_live() function returns an error
+            if "error" in hop:
+                await websocket.send_json(hop)
+                return
             # Append the IP details to the hop
             if re.match(r"\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}", hop["ip"]):
                 ip_details = await fetch_ip_details([hop["ip"]])
