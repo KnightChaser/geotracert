@@ -53,6 +53,9 @@ async function fetchTraceroute() {
             icon: "info",
             title: "Traceroute started to <code>" + target + "</code>"
         });
+
+        // Set the statusButton to "Running", and move the class to "btn btn-primary btn-lg"(filled blue button)
+        document.getElementById("statusButton").innerHTML = "<span class='spinner-grow spinner-grow-sm' aria-hidden='true'></span><span>Running</span>";
     };
 
     // Store the previous tracked traceroute hop's coordinates and the current
@@ -138,14 +141,30 @@ async function fetchTraceroute() {
             icon: "error",
             title: "An error occurred during the traceroute"
         });
+
+        // Set the statusButton to "Error", with exclamation diamond icon
+        document.getElementById("statusButton").innerHTML = "<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-exclamation-diamond-fill' viewBox='0 0 16 16'>"
+        document.getElementById("statusButton").innerHTML += "<path d='M9.05.435c-.58-.58-1.52-.58-2.1 0L.436 6.95c-.58.58-.58 1.519 0 2.098l6.516 6.516c.58.58 1.519.58 2.098 0l6.516-6.516c.58-.58.58-1.519 0-2.098zM8 4c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995A.905.905 0 0 1 8 4m.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2'/>"
+        document.getElementById("statusButton").innerHTML += "</svg>";
+        document.getElementById("statusButton").innerHTML += "<span>Error</span>";
+
+        // Set alart message
+        Swal.fire({
+            icon: "error",
+            title: "An error occurred during the traceroute",
+            text: "Please check the server logs for more information"
+        });
     };
 
     ws.onclose = function() {
         console.log("WebSocket connection closed");
         swalToastMessage.fire({
             icon: "success",
-            title: "Traceroute completed"
+            title: "Traceroute completed, refresh the page to start a new traceroute"
         });
+
+        // Set the statusButton to "Completed", with file-earmark-check-fill icon
+        document.getElementById("statusButton").innerHTML = "<span>Completed</span>";
     };
 }
 

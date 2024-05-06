@@ -46,6 +46,10 @@ body {
     width: 200px; /* Set a fixed width */
 }
 
+#statusButton {
+    margin-left: 5px;
+}
+
 .map-container {
     margin-top: 20px;
     margin-bottom: 20px;
